@@ -24,8 +24,9 @@ if __name__ == '__main__':
                    'left_hand_sim': sim,
                    'right_arm_sim': sim,
                    'right_hand_sim': sim,
-                   'head_sim': True,
-                   'segway_sim': True}
+                   'head_sim': sim,
+                   'segway_sim': True,
+                   'perception_sim': sim}
     env, robot = herbpy.initialize(**herbpy_args)
     if args.viewer:
         env.SetViewer(args.viewer) # 14.04 weirdness
