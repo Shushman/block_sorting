@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>block_sorting</name>
+  <version>0.0.0</version>
+  <description>
+    Scripts for executing a demo that detects and sorts blocks into a bin
+  </description>
+  <url type="website">https://github.com/personalrobotics/block_sorting</url>
+  <url type="repository">https://github.com/personalrobotics/block_sorting.git</url>
+  <url type="bugtracker">https://github.com/personalrobotics/block_sorting/issues</url>
+  <maintainer email="jeking@andrew.cmu.edu">Jennifer King</maintainer>
+  <author email="jeking@andrew.cmu.edu">Jennifer King</author>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>python</depend>
+
+  <exec_depend>herbpy</exec_depend>
+  <exec_depend>ipython</exec_depend>
+  <exec_depend>python-argparse</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+</package>
