@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     # Grab the table
     table = env.GetKinBody('conference_table')
-    block_bin = env.GetKinBody('block_bin')
+    block_bin = env.GetKinBody('wicker_tray')
 
     running = True
     while running:
@@ -59,11 +59,23 @@ if __name__ == '__main__':
         raw_input('Press enter to continue')
         try:
             robot.GrabBlock(block, table, manip=manip)
-            robot.PlaceBlock(block, block_bin)
+            robot.PlaceBlock(block, block_bin, manip=manip)
         except PlanningError, e:
             logger.error('Failed to grab block')
-
-        manip.PlanToNamedConfiguration('home')
+            raw_input('Press any key to continue')
+            
+        try:
+            with prpy.rave.Disabled(block_bin, padding_only=True):
+                with prpy.rave.Disabled(block):
+                    manip.PlanToNamedConfiguration('home')
+        except PlanningError, e:
+#            robot.Say("I am stuck. Can you help me?")
+            if sim:
+                indices, config = robot.configurations.get_configuration('home')
+                robot.SetDOFValues(config, dofindices=indices)
+            else:
+                raw_input('Press enter to continue')
+#            robot.Say("Thank you.")
 
     import IPython; IPython.embed()
 

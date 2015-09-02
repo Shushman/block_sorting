@@ -31,8 +31,22 @@ class PerceptionSimulator(PerceptionModule):
                                       [0., 0., 0., 1.]])
         table_in_world = numpy.dot(robot.GetTransform(), table_in_robot)
         table.SetTransform(table_in_world)
+        table_aabb = table.ComputeAABB()
+        table_height = table_aabb.pos()[2] + table_aabb.extents()[2] 
 
         # TODO: Add a bin to the edge of the table for placing the blocks into
+        tray_path = os.path.join(data_dir, 'objects', 'wicker_tray.kinbody.xml')
+        tray = env.ReadKinBodyXMLFile(tray_path)
+        tray_aabb = tray.ComputeAABB()
+        env.Add(tray)
+
+        xpose = table
+        tray_in_table = numpy.array([[1., 0., 0., -0.7607], # right edge - -.99575 + .235
+                                     [0., 0., 1., table_height + 0.01],
+                                     [0.,-1., 0., 0.],
+                                     [0., 0., 0., 1.]])
+        tray_in_world = numpy.dot(table.GetTransform(), tray_in_table)
+        tray.SetTransform(tray_in_world)
 
     @PerceptionMethod
     def DetectBlocks(self, robot, table, blocks=[], **kw_args):
