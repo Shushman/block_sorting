@@ -5,8 +5,8 @@ The following rosinstall can be used to get the required dependencies for runnin
 ```
 - git: {local-name: block_sorting, uri: 'https://github.com/personalrobotics/block_sorting.git'}
 - git: {local-name: herbpy, uri: 'https://github.com/personalrobotics/herbpy.git', version: feature/block_pickup}
-- git: {local-name: prpy, uri: 'https://github.com/personalrobotics/prpy', version: feature/perception_pipeline}
 - git: {local-name: pr-ordata, uri: 'https://github.com/personalrobotics/pr-ordata', version: feature/ycb_objects}
+- git: {local-name: prpy, uri: 'https://github.com/jeking04/prpy', version: feature/perception_pipeline}
 - git: {local-name: herb_description, uri: 'https://github.com/personalrobotics/herb_description'}
 - git: {local-name: openrave_catkin, uri: 'https://github.com/personalrobotics/openrave_catkin'}
 - git: {local-name: or_parabolicsmoother, uri: 'https://github.com/personalrobotics/or_parabolicsmoother'}
