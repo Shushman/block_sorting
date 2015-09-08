@@ -17,10 +17,17 @@ The following rosinstall can be used to get the required dependencies for runnin
 - git: {local-name: or_sbpl, uri: 'https://github.com/personalrobotics/or_sbpl'}
 - git: {local-name: comps, uri: 'https://github.com/personalrobotics/comps'}
 - git: {local-name: or_rviz, uri: 'https://github.com/personalrobotics/or_rviz'}
+- git: {local-name: tabletop_perception_tools, uri: 'https://github.com/personalrobotics/tabletop_perception_tools.git'}
 ```
 
 To run the demo in simulation:
 ```
 cmd> roscd block_sorting/scripts
 cmd> python run_demo.py 
+```
+
+## Perception on the Real Robot
+Start the `table_perception_tools` server on `herb2`:
+```bash
+$ rosrun tabletop_perception_tools tools_server
 ```
