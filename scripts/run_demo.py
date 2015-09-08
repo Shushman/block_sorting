@@ -7,10 +7,24 @@ logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
 logger.addHandler(ch)
 
+def setup_limits(robot):
+    # TODO: Hack to get around owd/openrave joint limit mismatch
+    owd_lower_limits = [ -2.60+numpy.pi, -1.96, -2.73, -0.86, -4.79, -1.56, -2.99 ]
+    owd_upper_limits = [  2.60+numpy.pi,  1.96,  2.73,  3.13,  1.30,  1.56,  2.99 ]
+    or_lower_limits, or_upper_limits = robot.GetDOFLimits()
+    or_lower_limits[robot.right_arm.GetArmIndices()] = owd_lower_limits
+    or_lower_limits[robot.left_arm.GetArmIndices()] = owd_lower_limits
+    or_upper_limits[robot.right_arm.GetArmIndices()] = owd_upper_limits
+    or_upper_limits[robot.left_arm.GetArmIndices()] = owd_upper_limits
+    robot.SetDOFLimits(or_lower_limits, or_upper_limits)
+
 def select_block(blocks, block_bin):
     """
     Randomly select a block that is not already in the bin
     """
+    if blocks is None:
+        return None
+
     bin_aabb = block_bin.ComputeAABB()
 
     valid_blocks = []
@@ -63,6 +77,9 @@ if __name__ == '__main__':
     else:
         perception_sim = not args.nosim
 
+    # Set the joint limits used by the planners
+    setup_limits(robot)
+
     # Make the manipulator active
     manip = robot.GetManipulator(args.arm)
     robot.SetActiveManipulator(manip)
@@ -94,35 +111,44 @@ if __name__ == '__main__':
     while running:
         logger.info('Redecting objects')
         blocks = robot.DetectBlocks(table)
-
+        v = raw_input('Press enter to continue, r to redetect')
+        if v == 'r':
+            continue
+        
         # Get a block
         block = select_block(blocks, block_bin)
         if block is None:
             logger.info('No blocks on table')
+            raw_input('Press enter to continue')
             continue
         
         logger.info('Grabbing block %s' % block.GetName())
-        raw_input('Press enter to continue')
         try:
             robot.GrabBlock(block, table, manip=manip)
             robot.PlaceBlock(block, block_bin, manip=manip)
         except PlanningError, e:
             logger.error('Failed to grab block')
+            if robot.IsGrabbing(block):
+                robot.Release(block)
             raw_input('Press any key to continue')
+        except prpy.exceptions.TrajectoryAborted, e:
+            logger.error('Trajectory aborted. Joint limit?')
+            robot.Say("I think I am stuck in joint limit. Can you help me?")
+            raw_input('Check joint limits and press any key to continue')
             
         try:
             with prpy.rave.Disabled(block_bin, padding_only=True):
                 with prpy.rave.Disabled(block):
                     manip.PlanToNamedConfiguration('home')
-        except PlanningError, e:
-#            robot.Say("I am stuck. Can you help me?")
+        except (PlanningError, prpy.exceptions.TrajectoryAborted):
+            robot.Say("I am stuck. Can you help me?")
             if sim:
                 indices, config = robot.configurations.get_configuration('home')
                 robot.SetDOFValues(config, dofindices=indices)
             else:
                 raw_input('Press enter to continue')
-#            robot.Say("Thank you.")
-
+            robot.Say("Thank you.")
+        
     import IPython; IPython.embed()
 
 

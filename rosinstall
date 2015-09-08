@@ -3,3 +3,4 @@
 - git: {local-name: prpy, uri: 'https://github.com/jeking04/prpy', version: feature/perception_pipeline}
 - git: {local-name: pr-ordata, uri: 'https://github.com/personalrobotics/pr-ordata'}
 - git: {local-name: tabletop_perception_tools, uri: 'https://github.com/personalrobotics/tabletop_perception_tools.git'}
+- git: {local-name: talker, uri: 'https://github.com/personalrobotics/talker.git'}
