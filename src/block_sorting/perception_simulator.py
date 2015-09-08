@@ -96,6 +96,6 @@ class PerceptionSimulator(PerceptionModule):
                 block.SetTransform(block_in_world)
                 block.SetName(b['name'])
                 env.Add(block)
-            blocks.append(block)
+                blocks.append(block)
 
         return blocks

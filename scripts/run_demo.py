@@ -7,6 +7,30 @@ logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
 logger.addHandler(ch)
 
+def select_block(blocks, block_bin):
+    """
+    Randomly select a block that is not already in the bin
+    """
+    bin_aabb = block_bin.ComputeAABB()
+
+    valid_blocks = []
+    for b in blocks:
+        # Get the pose of the block
+        b_pose = b.GetTransform()
+
+        # Check if its inside the tray
+        if b_pose[0,3] < bin_aabb.pos()[0] - bin_aabb.extents()[0] or \
+           b_pose[0,3] > bin_aabb.pos()[0] + bin_aabb.extents()[0] or \
+           b_pose[1,3] < bin_aabb.pos()[1] - bin_aabb.extents()[1] or \
+           b_pose[1,3] > bin_aabb.pos()[1] + bin_aabb.extents()[1]:
+            valid_blocks.append(b)
+        
+
+    if len(valid_blocks) == 0:
+        return None
+    idx = random.randint(0, len(valid_blocks) - 1)
+    return valid_blocks[idx]
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Detect and sort blocks on a table")
     parser.add_argument("-r", "--nosim", dest="nosim", action="store_true", default=False,
@@ -71,10 +95,11 @@ if __name__ == '__main__':
         logger.info('Redecting objects')
         blocks = robot.DetectBlocks(table)
 
-        idx = random.randint(0, len(blocks) - 1)
-
-        # TODO: Draw a circle around the block currently being grasped
-        block = blocks[idx]
+        # Get a block
+        block = select_block(blocks, block_bin)
+        if block is None:
+            logger.info('No blocks on table')
+            continue
         
         logger.info('Grabbing block %s' % block.GetName())
         raw_input('Press enter to continue')
