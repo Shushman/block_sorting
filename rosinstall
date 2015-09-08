@@ -1,0 +1,5 @@
+- git: {local-name: block_sorting, uri: 'https://github.com/personalrobotics/block_sorting.git'}
+- git: {local-name: herbpy, uri: 'https://github.com/personalrobotics/herbpy.git', version: feature/block_pickup}
+- git: {local-name: prpy, uri: 'https://github.com/jeking04/prpy', version: feature/perception_pipeline}
+- git: {local-name: pr-ordata, uri: 'https://github.com/personalrobotics/pr-ordata'}
+- git: {local-name: tabletop_perception_tools, uri: 'https://github.com/personalrobotics/tabletop_perception_tools.git'}
