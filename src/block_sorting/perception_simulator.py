@@ -15,6 +15,9 @@ class PerceptionSimulator(PerceptionModule):
         """
         Detect the table and the bin
         """
+        from prpy.rave import Disabled
+        from prpy.util import ComputeEnabledAABB
+
         env = robot.GetEnv()
 
         # Get the pr-ordata package path
@@ -24,19 +27,25 @@ class PerceptionSimulator(PerceptionModule):
         table_path = os.path.join(data_dir, 'furniture', 'table.kinbody.xml')
         table = env.ReadKinBodyXMLFile(table_path)
         env.Add(table)
+
+        with env:
+            table.GetLink('padding_conference_table').Enable(False)
+            table.GetLink('padding_conference_table').SetVisible(False)
         
-        table_in_robot = numpy.array([[0., 0., 1., 1.025],
+        table_in_robot = numpy.array([[0., 0., 1., 0.8],
                                       [1., 0., 0., 0.],
                                       [0., 1., 0., 0.],
                                       [0., 0., 0., 1.]])
         table_in_world = numpy.dot(robot.GetTransform(), table_in_robot)
         table.SetTransform(table_in_world)
-        table_aabb = table.ComputeAABB()
-        table_height = table_aabb.pos()[2] + table_aabb.extents()[2] 
+
+        with Disabled(table, padding_only=True):
+            table_aabb = ComputeEnabledAABB(table)
+
+        table_height = table_aabb.pos()[2] + table_aabb.extents()[2]
 
         # TODO: Add a bin to the edge of the table for placing the blocks into
-        tray_path = os.path.join(data_dir, 'objects', 'wicker_tray.kinbody.xml')
-        tray = env.ReadKinBodyXMLFile(tray_path)
+        tray = env.ReadKinBodyXMLFile('objects/wicker_tray.kinbody.xml')
         tray_aabb = tray.ComputeAABB()
         env.Add(tray)
 
@@ -53,6 +62,9 @@ class PerceptionSimulator(PerceptionModule):
         """
         Place blocks on the table
         """
+        from prpy.rave import Disabled
+        from prpy.util import ComputeEnabledAABB
+
         if len(blocks) == 0:
             # Add all blocks
 
@@ -65,12 +77,10 @@ class PerceptionSimulator(PerceptionModule):
         
             env = robot.GetEnv()
 
-            # Get the pr-ordata package path
-            data_dir = prpy.util.FindCatkinResource('pr_ordata', 'data')
-            block_path = os.path.join(data_dir, 'objects', 'block.kinbody.xml')
-                    
             # Place blocks in a pattern on the table
-            table_aabb = table.ComputeAABB()
+            with Disabled(table, padding_only=True):
+                table_aabb = ComputeEnabledAABB(table)
+
             table_height = table_aabb.pos()[2] + table_aabb.extents()[2]
             table_corner = numpy.eye(4)
             table_corner[:3,3] = [table_aabb.pos()[0] - table_aabb.extents()[0],
@@ -78,12 +88,11 @@ class PerceptionSimulator(PerceptionModule):
                                   table_height]
             
             for b in block_yaml:
-
-                block = env.ReadKinBodyXMLFile(block_path)
+                block = env.ReadKinBodyXMLFile('objects/block.kinbody.xml')
                 block_pose = numpy.eye(4)
                 block_pose[:2,3] = b['pose']
                 block_in_world = numpy.dot(table_corner, block_pose)
-                block_in_world[2,3] = table_height + 0.01
+                block_in_world[2,3] = table_height
                 block.SetTransform(block_in_world)
                 block.SetName(b['name'])
                 env.Add(block)
