@@ -23,7 +23,13 @@ cmd> touch src/owd/owd_plugin_example/CATKIN_IGNORE
 To run the demo in simulation:
 ```
 cmd> roscd block_sorting/scripts
-cmd> python run_demo.py 
+cmd> python run_demo.py --perception-sim --viewer rviz
+```
+
+To run the demo on the real robot:
+```
+cmd> roscd block_sorting/scripts
+cmd> python run_demo.py -r --viewer rviz
 ```
 
 ## Perception on the Real Robot
