@@ -11,7 +11,7 @@ class PerceptionSimulator(PerceptionModule):
         return 'PerceptionSimulator'
 
     @PerceptionMethod
-    def DetectObjects(self, robot, **kw_args):
+    def DetectTable(self, robot, **kw_args):
         """
         Detect the table and the bin
         """
@@ -39,23 +39,7 @@ class PerceptionSimulator(PerceptionModule):
         table_in_world = numpy.dot(robot.GetTransform(), table_in_robot)
         table.SetTransform(table_in_world)
 
-        with Disabled(table, padding_only=True):
-            table_aabb = ComputeEnabledAABB(table)
-
-        table_height = table_aabb.pos()[2] + table_aabb.extents()[2]
-
-        # TODO: Add a bin to the edge of the table for placing the blocks into
-        tray = env.ReadKinBodyXMLFile('objects/wicker_tray.kinbody.xml')
-        tray_aabb = tray.ComputeAABB()
-        env.Add(tray)
-
-        xpose = table
-        tray_in_table = numpy.array([[1., 0., 0., -0.7607], # right edge - -.99575 + .235
-                                     [0., 0., 1., table_height + 0.01],
-                                     [0.,-1., 0., 0.],
-                                     [0., 0., 0., 1.]])
-        tray_in_world = numpy.dot(table.GetTransform(), tray_in_table)
-        tray.SetTransform(tray_in_world)
+        return table
 
     @PerceptionMethod
     def DetectBlocks(self, robot, table, blocks=[], **kw_args):
@@ -99,3 +83,55 @@ class PerceptionSimulator(PerceptionModule):
                 blocks.append(block)
 
         return blocks
+
+    @PerceptionMethod
+    def DetectBins(self, robot, table, **kw_args):
+        """
+        Place bins on table
+        """
+        from prpy.rave import Disabled
+        from prpy.util import ComputeEnabledAABB
+        env = robot.GetEnv()
+
+        # Place blocks in a pattern on the table
+        with Disabled(table, padding_only=True):
+            table_aabb = ComputeEnabledAABB(table)
+
+        table_height = table_aabb.pos()[2] + table_aabb.extents()[2]
+        table_corner = numpy.eye(4)
+        table_corner[:3,3] = [table_aabb.pos()[0] - table_aabb.extents()[0],
+                              table_aabb.pos()[1] - table_aabb.extents()[1],
+                              table_height]
+
+        # Import the yaml file telling where to place blocks
+        bin_config_dir = prpy.util.FindCatkinResource('block_sorting', 'config')
+        bin_config = os.path.join(bin_config_dir, 'bin_metadata.yaml')
+        with open(bin_config, 'r') as f:
+            import yaml
+            bin_yaml = yaml.load(f.read())
+
+        bins = []
+        for b in bin_yaml:
+            bin_obj = env.ReadKinBodyXMLFile(os.path.join('objects', b['kinbody']))
+
+            # Set the pose
+            bin_pose = numpy.eye(4)
+            bin_pose[:2,3] = b['pose']
+            bin_in_world = numpy.dot(table_corner, bin_pose)
+            bin_in_world[2,3] = table_height
+            bin_obj.SetTransform(bin_in_world)
+
+            # Set the color
+            for l in bin_obj.GetLinks():
+                for g in l.GetGeometries():
+                    color = b['color'] + [1.]
+                    g.SetDiffuseColor(numpy.array(color))
+
+            # Set the name
+            bin_obj.SetName(b['name'])
+            
+            # Add it
+            env.Add(bin_obj)
+            bins.append(bin_obj)
+
+        return bins

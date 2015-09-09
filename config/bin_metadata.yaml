@@ -1,0 +1,17 @@
+# All positions relative to near-right corner of table
+- name: green
+  kinbody: block_bin.kinbody.xml
+  color: [0., 1., 0.]
+  pose: [0.10, .18]
+- name: blue
+  kinbody: block_bin.kinbody.xml
+  color: [0., 0., 1.]
+  pose: [0.35, .18]
+- name: red
+  kinbody: block_bin.kinbody.xml
+  color: [1., 0., 0.]
+  pose: [0.10, .5]
+- name: yellow
+  kinbody: block_bin.kinbody.xml
+  color: [1., 1., 0.]
+  pose: [0.35, .5]

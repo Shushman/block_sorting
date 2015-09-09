@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import argparse, herbpy, logging, numpy, os, prpy, random
+import block_sorting.block_utils as block_utils
 from prpy.planning import PlanningError
+
 
 logger = logging.getLogger('block_sorting')
 logger.setLevel(logging.INFO)
@@ -18,32 +20,6 @@ def setup_limits(robot):
     or_upper_limits[robot.left_arm.GetArmIndices()] = owd_upper_limits
     robot.SetDOFLimits(or_lower_limits, or_upper_limits)
 
-def select_block(blocks, block_bin):
-    """
-    Randomly select a block that is not already in the bin
-    """
-    if blocks is None:
-        return None
-
-    bin_aabb = block_bin.ComputeAABB()
-
-    valid_blocks = []
-    for b in blocks:
-        # Get the pose of the block
-        b_pose = b.GetTransform()
-
-        # Check if its inside the tray
-        if b_pose[0,3] < bin_aabb.pos()[0] - bin_aabb.extents()[0] or \
-           b_pose[0,3] > bin_aabb.pos()[0] + bin_aabb.extents()[0] or \
-           b_pose[1,3] < bin_aabb.pos()[1] - bin_aabb.extents()[1] or \
-           b_pose[1,3] > bin_aabb.pos()[1] + bin_aabb.extents()[1]:
-            valid_blocks.append(b)
-        
-
-    if len(valid_blocks) == 0:
-        return None
-    idx = random.randint(0, len(valid_blocks) - 1)
-    return valid_blocks[idx]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Detect and sort blocks on a table")
@@ -99,11 +75,11 @@ if __name__ == '__main__':
             destination_frame='/herb_base'
         )
 
-    robot.DetectObjects()
-
     # Grab the table
-    table = env.GetKinBody('conference_table')
-    block_bin = env.GetKinBody('wicker_tray')
+    table = robot.DetectTable()
+
+    # Detect the bins
+    bins = robot.DetectBins(table)
 
     running = True
     blocks = []
@@ -116,16 +92,24 @@ if __name__ == '__main__':
             continue
         
         # Get a block
-        block = select_block(blocks, block_bin)
+        block = block_utils.SelectBlock(blocks, bins)
         if block is None:
             logger.info('No blocks on table')
             raw_input('Press enter to continue')
             continue
         
+        # Select an appropriate bin for the block
+        block_bin = block_utils.GetBinForBlock(block, bins)
+
         logger.info('Grabbing block %s' % block.GetName())
         try:
+            # Grab the block and put it into the bin
             robot.GrabBlock(block, table, manip=manip)
             robot.PlaceBlock(block, block_bin, manip=manip)
+        
+            # If successful, take this block out of the environment
+            env.Remove(block)
+
         except PlanningError, e:
             logger.error('Failed to grab block')
             if robot.IsGrabbing(block):
