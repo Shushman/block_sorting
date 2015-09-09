@@ -105,6 +105,7 @@ if __name__ == '__main__':
         try:
             # Grab the block and put it into the bin
             robot.GrabBlock(block, table, manip=manip)
+            block_utils.VerifyGrasp(block, manip)
             robot.PlaceBlock(block, block_bin, manip=manip)
         
             # If successful, take this block out of the environment
@@ -119,6 +120,9 @@ if __name__ == '__main__':
             logger.error('Trajectory aborted. Joint limit?')
             robot.Say("I think I am stuck in joint limit. Can you help me?")
             raw_input('Check joint limits and press any key to continue')
+        except block_utils.FailedGrasp, e:
+            logger.error('Failed to grasp the block')
+            robot.Say("Whoops, I missed.")
             
         try:
             with prpy.rave.Disabled(block_bin, padding_only=True):

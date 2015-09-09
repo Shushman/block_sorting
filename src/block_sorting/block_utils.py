@@ -65,3 +65,16 @@ def SelectBlock(blocks, bins):
         return None
     idx = random.randint(0, len(valid_blocks) - 1)
     return valid_blocks[idx]
+
+class FailedGrasp(Exception):
+    """
+    Failed grasp exception
+    """
+
+def VerifyGrasp(block, manip):
+    """
+    Return True if block is verified to be grasped, otherwise throw a
+    FailedGrasp exception
+    """    
+    return True
+
