@@ -97,9 +97,11 @@ if __name__ == '__main__':
         logger.info('Redecting objects')
         
         if (perception_sim):
-            blocks = perception_simulator.DetectBlocks(robot, table)
+            blocks = perception_simulator.DetectBlocks(robot, table, blocks=[])
         else:
-            blocks = block_detector.DetectBlocks(robot, table)
+            for b in blocks:
+                env.Remove(b)
+            blocks = block_detector.DetectBlocks(robot, table, blocks=[])
             
         v = raw_input('Press enter to continue, r to redetect')
         if v == 'r':
@@ -129,7 +131,7 @@ if __name__ == '__main__':
             logger.error('Failed to grab block')
             if robot.IsGrabbing(block):
                 robot.Release(block)
-            raw_input('Press any key to continue')
+            #raw_input('Press any key to continue')
         except prpy.exceptions.TrajectoryAborted, e:
             logger.error('Trajectory aborted. Joint limit?')
             robot.Say("I think I am stuck in joint limit. Can you help me?")
