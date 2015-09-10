@@ -63,33 +63,44 @@ if __name__ == '__main__':
     manip = robot.GetManipulator(args.arm)
     robot.SetActiveManipulator(manip)
 
+    import rospy
+    from block_sorting.perception_simulator import PerceptionSimulator
+    perception_simulator = PerceptionSimulator();
+    
     # Detect static objects in the environment
     if perception_sim:
-        from block_sorting.perception_simulator import PerceptionSimulator
-        robot.detector = PerceptionSimulator()
+        # Grab the table
+        table = perception_simulator.DetectTable(robot)
     else:
-        import rospy
         from prpy.perception.block_detector import BlockDetector
-
+        from prpy.perception.apriltags import ApriltagsModule
         rospy.init_node('block_sorting', anonymous=True)
-        robot.detector = BlockDetector(
-            point_cloud_topic='/head/kinect2/qhd/points',
-            detection_frame='/head/kinect2_rgb_optical_frame',
-            destination_frame='/herb_base'
-        )
-
-    # Grab the table
-    table = robot.DetectTable()
-
+        #marker_topic, marker_data_path, kinbody_path,
+                 #detection_frame, destination_frame)
+        april_tags = ApriltagsModule(marker_topic='/apriltags_kinect2/marker_array', marker_data_path=prpy.util.FindCatkinResource('pr_ordata',
+                                                        'data/objects/tag_data.json'), kinbody_path=prpy.util.FindCatkinResource('pr_ordata',
+                                                        'data/objects'), destination_frame='/herb_base', detection_frame='/head/kinect2_rgb_optical_frame');
+        table = april_tags.DetectObject(robot, 'table127');
+        print table
+        block_detector = BlockDetector(
+        point_cloud_topic='/head/kinect2/qhd/points',
+        detection_frame='/head/kinect2_rgb_optical_frame',
+        destination_frame='/herb_base');
+    
     # Detect the bins
-    bins = robot.DetectBins(table)
-
+    bins = perception_simulator.DetectBins(robot=robot, table=table)
+        
     running = True
     blocks = []
 
     while running:
         logger.info('Redecting objects')
-        blocks = robot.DetectBlocks(table)
+        
+        if (perception_sim):
+            blocks = perception_simulator.DetectBlocks(robot, table)
+        else:
+            blocks = block_detector.DetectBlocks(robot, table)
+            
         v = raw_input('Press enter to continue, r to redetect')
         if v == 'r':
             continue

@@ -59,7 +59,7 @@ class PerceptionSimulator(PerceptionModule):
                 import yaml
                 block_yaml = yaml.load(f.read())
         
-            env = robot.GetEnv()
+            env = robot.GetEnvironment()
 
             # Place blocks in a pattern on the table
             with Disabled(table, padding_only=True):
@@ -102,6 +102,8 @@ class PerceptionSimulator(PerceptionModule):
         table_corner[:3,3] = [table_aabb.pos()[0] - table_aabb.extents()[0],
                               table_aabb.pos()[1] - table_aabb.extents()[1],
                               table_height]
+         # Get the pr-ordata package path
+        data_dir = prpy.util.FindCatkinResource('pr_ordata', 'data')
 
         # Import the yaml file telling where to place blocks
         bin_config_dir = prpy.util.FindCatkinResource('block_sorting', 'config')
@@ -112,7 +114,7 @@ class PerceptionSimulator(PerceptionModule):
 
         bins = []
         for b in bin_yaml:
-            bin_obj = env.ReadKinBodyXMLFile(os.path.join('objects', b['kinbody']))
+            bin_obj = env.ReadKinBodyXMLFile(os.path.join(data_dir, 'objects', b['kinbody']))
 
             # Set the pose
             bin_pose = numpy.eye(4)
