@@ -46,6 +46,9 @@ if __name__ == '__main__':
     if args.viewer:
         env.SetViewer(args.viewer) # 14.04 weirdness
 
+    robot.right_arm.SetStiffness(1)
+    robot.left_arm.SetStiffness(1)
+
     # Default to using real perception on the real robot, but allow the user to
     # override this by passing the --perception-sim option.
     if args.perception_sim is not None:
