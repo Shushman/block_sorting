@@ -59,7 +59,7 @@ class PerceptionSimulator(PerceptionModule):
                 import yaml
                 block_yaml = yaml.load(f.read())
         
-            env = robot.GetEnvironment()
+            env = robot.GetEnv()
 
             # Place blocks in a pattern on the table
             with Disabled(table, padding_only=True):
